@@ -38,13 +38,13 @@ public class ConexionBD {
 	public void getConexion(){
 		
 		try {
-			conn = DriverManager.getConnection(URL_MYSQL,"root","123456");
+			conn = DriverManager.getConnection(URL_MYSQL,"root","");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} 	
 	}
 	
-	//TODO metodo para buscar los billetes
+	
 	
 	public LinkedList<Billete> BuscarBilletes(Billete bil){
 		LinkedList<Billete> bills=new LinkedList<Billete>();
@@ -74,5 +74,45 @@ public class ConexionBD {
 		}
 		return bills;
 	}
-	
+	public String orignenes(){
+		String resp="";
+		String sql="SELECT origen FROM billetes";
+		ResultSet rs=null;
+		getConexion();
+		try{
+			PreparedStatement stmt=conn.prepareStatement(sql);
+			rs=stmt.executeQuery();
+			while(rs.next()){
+				resp+=rs.getString("origen")+";";
+			}
+			resp+="\r\n";
+			stmt.close();
+			conn.close();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return resp;
+	}
+	public String destinos(){
+		String resp="";
+		
+		String sql="SELECT destino FROM billetes";
+		ResultSet rs=null;
+		getConexion();
+		try{
+			PreparedStatement stmt=conn.prepareStatement(sql);
+			rs=stmt.executeQuery();
+			while(rs.next()){
+				resp+=rs.getString("destino")+";";
+			}
+			resp+="\r\n";
+			stmt.close();
+			conn.close();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return resp;
+	}
 }

@@ -84,22 +84,27 @@ public class Autentica implements Runnable, Protocolo {
 	                        comando = inputData;
 	                        parametro = null;
                     	}else if(fields.length>1){
-                    		
+                    		comando="";
+                    		System.out.println(fields[0]+fields[1]+fields[2]);
                     		try{
                     			msg.setEstado(Integer.parseInt(fields[0]));
                     		}catch(NumberFormatException e){
+                    			System.out.println("1");
                     			comando=QUIT;
                     			parametro=null;
                     		}
                     		
                     		msg.setHeader(fields[1]);
-                    		if(!msg.getHeader().equals("ORG")||!msg.getHeader().equals("DST")||!msg.getHeader().equals("FCH")){
+                    		
+                    		if(!msg.getHeader().equalsIgnoreCase("ORG")&&!msg.getHeader().equalsIgnoreCase("DST")&&!msg.getHeader().equalsIgnoreCase("FCH")){
+                    			System.out.println("2");
                     			comando=QUIT;
                     			parametro=null;
                     		}
                     		try{
                     			msg.setData(fields[2]);
                     		}catch(IndexOutOfBoundsException e){
+                    			System.out.println("3");
                     			comando=QUIT;
                     			parametro=null;
                     		}
@@ -140,41 +145,54 @@ public class Autentica implements Runnable, Protocolo {
                             }
                             break;
                         case S_OPER:// Estado OPERACION
-
+                        	System.out.println(msg.getEstado()+msg.getHeader()+msg.getData());
                             if (comando.equalsIgnoreCase(QUIT)) {
                                 outputData = OK + SP + MSG_QUIT + CRLF;
                                 salir = true;
-                            } //Realizamos la union del mensaje de peticion y buscamos en la BBDD, ya comprobemos arriba que era un comando valido,
+                            }else if(comando.equalsIgnoreCase("ORIGEN")){
+                            	ConexionBD bd=new ConexionBD();
+                            	outputData=bd.orignenes();
+                            }else if(comando.equalsIgnoreCase("DESTINO")){
+                            	ConexionBD bd=new ConexionBD();
+                            	outputData =bd.destinos();
+                            }
+                            
+                            //Realizamos la union del mensaje de peticion y buscamos en la BBDD, ya comprobemos arriba que era un comando valido,
                             //en caso de no serlo finaliza el servicio ya que nuestro cliente esta preprogramado para enviar los mensajes
                             //de forma correcta y si se reciben mensajes erroneos es posible que sean efectuados por un tercero no deseado.
                             else{
-                            	
+                            	System.out.println(msg.getEstado()+msg.getHeader()+msg.getData());
                             	switch (msg.getEstado()){
+                            	
                             	case 1:
                             		if(msg.getHeader().equals("ORG")){
                             			bi.setOrigen(msg.getData());
-                            			outputData= OK+SP+CRLF;
+                            			outputData= OK+CRLF;
                             			st+=1;
                             		}else if(msg.getHeader().equals("DST")){
                             			bi.setDestino(msg.getData());
-                            			outputData= OK+SP+CRLF;
+                            			outputData= OK+CRLF;
                             			st+=1;
                             		}else if(msg.getHeader().equals("FCH")){
                             			bi.setFecha(msg.getData());
-                            			outputData= OK+SP+CRLF;
+                            			outputData= OK+CRLF;
                             			st+=1;
                             		}
                             		if(st==3){
                             			
                             			ConexionBD bd=new ConexionBD();
                             			bils=bd.BuscarBilletes(bi);
-                            			outputData="[";
+                            			
+                            			outputData="{billetes:[";
                             			for(int i=0;i<bils.size();i++){
                             				outputData+="{origen:"+bils.get(i).getOrigen()+",destino:"+bils.get(i).getDestino()+",fecha:"+bils.get(i).getFecha()+",";
                             				outputData+="hora:"+bils.get(i).getHora()+",IDbillete:"+bils.get(i).getIdbillete();
-                            				outputData+="},";
+                            				outputData+="}";
+                            				if(i<bils.size()-1){
+                            					outputData+=",";
+                            				}
                             			}
-                            			outputData+="]"+SP+CRLF;
+                            			outputData+="]}"+CRLF;
                             			st=0;
                             		}
                             		break;
