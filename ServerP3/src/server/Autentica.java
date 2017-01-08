@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.TimeZone;
 
+import com.mysql.jdbc.exceptions.jdbc4.CommunicationsException;
+
 import servicio.Billete;
 import servicio.ConexionBD;
 import servicio.Message;
@@ -85,11 +87,11 @@ public class Autentica implements Runnable, Protocolo {
 	                        parametro = null;
                     	}else if(fields.length>1){
                     		comando="";
-                    		System.out.println(fields[0]+fields[1]+fields[2]);
+
                     		try{
                     			msg.setEstado(Integer.parseInt(fields[0]));
                     		}catch(NumberFormatException e){
-                    			System.out.println("1");
+                    			
                     			comando=QUIT;
                     			parametro=null;
                     		}
@@ -97,14 +99,14 @@ public class Autentica implements Runnable, Protocolo {
                     		msg.setHeader(fields[1]);
                     		
                     		if(!msg.getHeader().equalsIgnoreCase("ORG")&&!msg.getHeader().equalsIgnoreCase("DST")&&!msg.getHeader().equalsIgnoreCase("FCH")){
-                    			System.out.println("2");
+                    			
                     			comando=QUIT;
                     			parametro=null;
                     		}
                     		try{
                     			msg.setData(fields[2]);
                     		}catch(IndexOutOfBoundsException e){
-                    			System.out.println("3");
+                    			
                     			comando=QUIT;
                     			parametro=null;
                     		}
@@ -151,10 +153,22 @@ public class Autentica implements Runnable, Protocolo {
                                 salir = true;
                             }else if(comando.equalsIgnoreCase("ORIGEN")){
                             	ConexionBD bd=new ConexionBD();
-                            	outputData=bd.orignenes();
+                            	try {
+									outputData=bd.orignenes();
+								} catch (CommunicationsException e) {
+									// TODO Auto-generated catch block
+									//e.printStackTrace();
+								}catch(NullPointerException e){
+									
+								}
                             }else if(comando.equalsIgnoreCase("DESTINO")){
                             	ConexionBD bd=new ConexionBD();
-                            	outputData =bd.destinos();
+                            	try {
+									outputData =bd.destinos();
+								} catch (CommunicationsException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
                             }
                             
                             //Realizamos la union del mensaje de peticion y buscamos en la BBDD, ya comprobemos arriba que era un comando valido,
@@ -181,12 +195,19 @@ public class Autentica implements Runnable, Protocolo {
                             		if(st==3){
                             			
                             			ConexionBD bd=new ConexionBD();
-                            			bils=bd.BuscarBilletes(bi);
+                            			try {
+											bils=bd.BuscarBilletes(bi);
+										} catch (CommunicationsException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+											outputData="ERROR\r\n";
+											
+										}
                             			
                             			outputData="{billetes:[";
                             			for(int i=0;i<bils.size();i++){
                             				outputData+="{origen:"+bils.get(i).getOrigen()+",destino:"+bils.get(i).getDestino()+",fecha:"+bils.get(i).getFecha()+",";
-                            				outputData+="hora:"+bils.get(i).getHora()+",IDbillete:"+bils.get(i).getIdbillete();
+                            				outputData+="hora:"+bils.get(i).getHora()+",IDbillete:"+bils.get(i).getIdbillete()+",Precio:"+bils.get(i).getPrecio();
                             				outputData+="}";
                             				if(i<bils.size()-1){
                             					outputData+=",";
@@ -209,6 +230,7 @@ public class Autentica implements Runnable, Protocolo {
                             break;
                     }
                     outputStream.write(outputData.getBytes());
+                    System.out.println(outputData);
                     outputStream.flush();
                 }
                 System.out.println("SERVIDOR> Conexi�n finalizada");

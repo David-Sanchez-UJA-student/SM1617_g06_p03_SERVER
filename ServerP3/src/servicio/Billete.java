@@ -7,7 +7,16 @@ public class Billete {
 	private String hora;
 	private int Nplazas;
 	private int idbillete;
+	private float precio;
 	
+	public float getPrecio() {
+		return precio;
+	}
+
+	public void setPrecio(float precio) {
+		this.precio = precio;
+	}
+
 	public Billete(){
 		
 	}
