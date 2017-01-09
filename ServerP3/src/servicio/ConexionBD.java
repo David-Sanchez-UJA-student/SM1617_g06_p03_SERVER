@@ -84,7 +84,7 @@ public class ConexionBD {
 	}
 	public String orignenes() throws CommunicationsException{
 		String resp="";
-		String sql="SELECT origen FROM billetes";
+		String sql="SELECT DISTINCT origen FROM billetes";
 		ResultSet rs=null;
 		getConexion();
 		if(conn!=null){
@@ -114,7 +114,7 @@ public class ConexionBD {
 		
 		String resp="";
 		
-		String sql="SELECT destino FROM billetes";
+		String sql="SELECT DISTINCT destino FROM billetes";
 		ResultSet rs=null;
 		getConexion();
 		if(conn!=null){
